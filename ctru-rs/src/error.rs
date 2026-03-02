@@ -40,7 +40,7 @@ pub struct ResultCode(pub ctru_sys::Result);
 
 impl Try for ResultCode {
     type Output = ();
-    type Residual = Error;
+    type Residual = std::result::Result<std::convert::Infallible, Error>;
 
     fn from_output(_: Self::Output) -> Self {
         Self(0)
@@ -51,7 +51,7 @@ impl Try for ResultCode {
         // Luckily all summary cases are for system failures (except RS_SUCCESS).
         // I don't know if there are any cases in libctru where a Result holds a "failing" summary but a "success" code, so we'll just check for both.
         if ctru_sys::R_FAILED(self.0) || ctru_sys::R_SUMMARY(self.0) != ctru_sys::RS_SUCCESS {
-            ControlFlow::Break(self.into())
+            ControlFlow::Break(Err(self.into()))
         } else {
             ControlFlow::Continue(())
         }
@@ -61,7 +61,7 @@ impl Try for ResultCode {
 impl FromResidual for ResultCode {
     fn from_residual(e: <Self as Try>::Residual) -> Self {
         match e {
-            Error::Os(result) => Self(result),
+            Err(Error::Os(result)) => Self(result),
             _ => unreachable!(),
         }
     }
