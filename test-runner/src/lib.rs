@@ -61,7 +61,7 @@ fn run<Runner: TestRunner>(tests: &[&TestDescAndFn]) {
     };
 
     let tests = TestList::new(
-        tests.iter().map(make_owned_test).collect(),
+        tests.iter().map(|t| make_owned_test(*t)).collect(),
         TestListOrder::Unsorted,
     );
     let result = test::run_tests_console(&opts, tests);
